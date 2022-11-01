@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const app = express()
 const db = require('./src/utils/db')
 const bookRouter = require('./src/routes/books.route')
+const userRouter = require('./src/routes/users.route')
 const port = 3000
 
 app.use(bodyParser.json())
@@ -13,6 +14,8 @@ app.get('/', (req, res) => {
 
 // Book Routes
 app.use('/api/v1/books', bookRouter)
+// User Routes
+app.use('/api/v1/users', userRouter)
 
 app.use((error, req, res, next) => {
     console.log('ERRO', error) 
