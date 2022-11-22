@@ -1,5 +1,7 @@
 const User = require('../models/user.model')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const constants = require('../utils/constants')
 
 const save = async (req, res, next) => {
     try {
@@ -27,7 +29,7 @@ const save = async (req, res, next) => {
 const getAll = async (req, res, next) => {
     try {
         const users = await User.find()
-        for(let user of users) {
+        for (let user of users) {
             user.password = undefined
         }
         res.json(users)
@@ -76,8 +78,38 @@ const remove = async (req, res, next) => {
             throw new Error(`User with id ${id} not found`)
         }
         await User.findByIdAndDelete(id)
-        res.json({message: `User with id ${id} has deleted`})
-    } catch(err) {
+        res.json({ message: `User with id ${id} has deleted` })
+    } catch (err) {
+        next(err)
+    }
+}
+
+const authenticate = async (req, res, next) => {
+    try {
+        const { username, password } = req.body
+
+        if (!(username && password)) {
+            throw new Error('username and password are required')
+        }
+
+        const user = await User.findOne({ username })
+
+        if (user && (await bcrypt.compare(password, user.password))) {
+            const token = jwt.sign({
+                sub: user._id,
+                iss: constants.security.iss,
+                username: user.username,
+                name: user.name,
+                profiles: user.profiles
+            }, constants.security.secret, {
+                expiresIn: constants.security.expires
+            })
+
+            res.status(200).json(token)
+        } else {
+            throw new Error('username and password invalid')
+        }
+    } catch (err) {
         next(err)
     }
 }
@@ -87,5 +119,6 @@ module.exports = {
     getAll,
     getById,
     update,
-    remove
+    remove,
+    authenticate
 }

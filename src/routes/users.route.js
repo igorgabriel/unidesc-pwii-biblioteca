@@ -1,14 +1,17 @@
 const router = require('express').Router()
 const controller = require('../controllers/users.controller')
+const authz = require('../middlewares/authz.middleware')
 
 router.post('/', controller.save)
 
-router.get('/', controller.getAll)
+router.get('/', authz, controller.getAll)
 
-router.get('/:id', controller.getById)
+router.get('/:id', authz, controller.getById)
 
-router.put('/:id', controller.update)
+router.put('/:id', authz, controller.update)
 
-router.delete('/:id', controller.remove)
+router.delete('/:id', authz, controller.remove)
+
+router.post('/authenticate', controller.authenticate)
 
 module.exports = router
